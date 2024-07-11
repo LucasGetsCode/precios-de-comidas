@@ -15,3 +15,5 @@ def obtener_precios():
         productos[producto] = {'precio':precio}
 
     return productos
+
+obtener_precios() # {'cafe': {'precio': 30.97}, 'oreo': {'precio': 343.33}, 'pan_lactal': {'precio': 374.83}}
