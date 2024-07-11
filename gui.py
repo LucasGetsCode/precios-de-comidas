@@ -1,18 +1,25 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 from PIL import Image, ImageTk
-import obtener_precios
+import obtener
 
 path_flecha = "Media/Flecha derecha.png"
+
+
+def invertir(producto):
+    if producto.capitalize() == producto:
+        return producto.replace(" ", "_").lower()
+    else:
+        return producto.replace("_", " ").capitalize()
 
 class App:
     def __init__(self, root):
         self.root = root
         self.root.title("GUI con Listbox")
-        self.data = obtener_precios.obtener_precios()
+        self.data = obtener.precios()
 
         # Lista de opciones
-        self.all_options = list(map(lambda x: self.invertir(x), self.data.keys()))
+        self.all_options = list(map(invertir, self.data.keys()))
         self.available_options = self.all_options.copy()
 
         # Listbox para mostrar opciones disponibles
@@ -20,6 +27,7 @@ class App:
         for option in self.available_options:
             self.listbox_available.insert(tk.END, option)
         self.listbox_available.grid(row=0, column=0, rowspan=3, padx=10, pady=10)
+        self.listbox_available.bind("<<ListboxSelect>>", self.update_label)
 
         # # Botones de flecha
         # self.up_button = tk.Button(root, text="⬆", command=self.navigate_up_available)
@@ -31,6 +39,7 @@ class App:
         # Listbox para mostrar elementos agregados
         self.listbox_selected = tk.Listbox(root, selectmode=tk.SINGLE)
         self.listbox_selected.grid(row=0, column=2, rowspan=3, padx=10, pady=10)
+        self.listbox_selected.bind("<<ListboxSelect>>", self.update_label)
 
         # Botón para agregar y quitar de la lista
         imagen = Image.open("Media/Flecha derecha.png").resize((30, 30))
@@ -51,12 +60,22 @@ class App:
         self.cantidad_input.grid(row=0, column=0)
         # self.cantidad_input.trace_add('write', self.validate_entry) # Verifica que se ingrese un número
 
-        self.cantidad_tipo = ttk.Combobox(self.cantidad_frame, values = ['g', 'mg', 'ml'], width=3)
+        self.cantidad_tipo = ttk.Combobox(self.cantidad_frame, values = ['g', 'mg', 'ml', 'pcn'], width=4)
         self.cantidad_tipo.grid(row=0, column=1)
 
-        # Botón para mostrar información
-        self.info_button = tk.Button(root, text="Info", command=self.show_info)
-        self.info_button.grid(row=1, column=3, padx=10)
+
+        # Info
+        self.info_frame = tk.Frame(root, width=200)
+        self.info_frame.grid(row=0, column=3, rowspan=3)
+
+        # # Botón para mostrar información
+        # self.info_button = tk.Button(root, text="Info", command=self.show_info)
+        # self.info_button.grid(row=1, column=3, padx=10)
+
+        self.info_title_label = tk.Label(self.info_frame)
+        self.info_title_label.pack(side='top')
+
+
 
     def add_to_list(self):
         selection = self.listbox_available.curselection()
@@ -114,11 +133,13 @@ class App:
     def validate_entry(self, P):
         return P == "" or P.replace('.','',1).isdigit()
 
-    def invertir(self, producto):
-        if producto.capitalize() == producto:
-            return producto.replace(" ", "_").lower()
-        else:
-            return producto.replace("_", " ").capitalize()
+        
+    def update_label(self, event):
+        widget = event.widget
+        selected = widget.curselection()
+        if selected:
+            option = widget.get(selected)
+            self.info_title_label.config(text=option)
 
 if __name__ == "__main__":
     root = tk.Tk()

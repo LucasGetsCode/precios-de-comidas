@@ -1,4 +1,4 @@
-import obtener_precios
+import obtener
 import actualizar_precios
 import openpyxl
 
@@ -42,7 +42,7 @@ def printear(nombre):
         print("La palabra ingresada no es un producto existente ni se reconoce como palabra clave")
 
 
-data = obtener_precios.obtener_precios()
+data = obtener.precios()
 
 seguir = True
 comidas = []
@@ -61,7 +61,7 @@ while seguir:
     elif texto == "actualizar":
         print("Actualizando precios...")
         actualizar_precios.actualizar_precios()
-        data = obtener_precios.obtener_precios()
+        data = obtener.precios()
         print("Listo!")
     elif texto == "guardar":
         wb.save(path)

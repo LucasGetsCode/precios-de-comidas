@@ -1,6 +1,6 @@
 import openpyxl
 
-def obtener_precios():
+def precios():
     path = "precios.xlsx"
     wb = openpyxl.load_workbook(filename=path)
     hoja = wb.active
@@ -16,4 +16,4 @@ def obtener_precios():
 
     return productos
 
-obtener_precios() # {'cafe': {'precio': 30.97}, 'oreo': {'precio': 343.33}, 'pan_lactal': {'precio': 374.83}}
+precios() # {'cafe': {'precio': 30.97}, 'oreo': {'precio': 343.33}, 'pan_lactal': {'precio': 374.83}}
