@@ -12,7 +12,7 @@ class App:
         self.data = obtener_precios.obtener_precios()
 
         # Lista de opciones
-        self.all_options = list(map(lambda x: x.capitalize().replace("_", " "), self.data.keys()))
+        self.all_options = list(map(lambda x: self.invertir(x), self.data.keys()))
         self.available_options = self.all_options.copy()
 
         # Listbox para mostrar opciones disponibles
@@ -113,6 +113,12 @@ class App:
 
     def validate_entry(self, P):
         return P == "" or P.replace('.','',1).isdigit()
+
+    def invertir(self, producto):
+        if producto.capitalize() == producto:
+            return producto.replace(" ", "_").lower()
+        else:
+            return producto.replace("_", " ").capitalize()
 
 if __name__ == "__main__":
     root = tk.Tk()
