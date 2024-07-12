@@ -1,38 +1,37 @@
 import tkinter as tk
-from tkinter import ttk
 
-class MainApp:
-    def __init__(self, root):
-        self.root = root
-        self.root.title("Lista de Labels con Botones de Borrado")
+# Crear la ventana principal
+root = tk.Tk()
 
-        # Lista de ejemplo
-        self.lista = ["Elemento 1", "Elemento 2", "Elemento 3", "Elemento 4"]
+# Crear una StringVar para el texto del label
+label_text = tk.StringVar()
 
-        # Crear un frame para contener los labels
-        self.main_frame = ttk.Frame(self.root, padding=10)
-        self.main_frame.pack()
+# Valores iniciales
+variable1 = 10
+variable2 = 20
 
-        # Crear los labels y botones dinámicamente
-        self.labels = []
-        for index, item in enumerate(self.lista):
-            label = ttk.Label(self.main_frame, text=item)
-            label.grid(row=index, column=0, sticky="w", padx=10, pady=5)
+# Función para actualizar el texto del label
+def update_label():
+    global variable1, variable2
+    fixed_text = "El resultado es:"
+    label_text.set(f"{fixed_text} {variable1} y {variable2}")
 
-            # Botón para borrar
-            delete_button = ttk.Button(self.main_frame, text="Borrar", command=lambda i=index: self.borrar_label(i))
-            delete_button.grid(row=index, column=1, padx=10, pady=5)
+# Crear el label y asignarle la StringVar
+label = tk.Label(root, textvariable=label_text)
+label.pack()
 
-            # Guardar referencia al label y botón
-            self.labels.append((label, delete_button))
+# Botón para cambiar los valores y actualizar el label
+def change_values():
+    global variable1, variable2
+    variable1 += 1
+    variable2 += 2
+    update_label()
 
-    def borrar_label(self, index):
-        # Eliminar label y botón del frame y de la lista
-        self.labels[index][0].grid_forget()  # Oculta el label
-        self.labels[index][1].grid_forget()  # Oculta el botón
-        del self.labels[index]  # Elimina la referencia de la lista de labels
+button = tk.Button(root, text="Cambiar valores", command=change_values)
+button.pack()
 
-if __name__ == "__main__":
-    root = tk.Tk()
-    app = MainApp(root)
-    root.mainloop()
+# Inicializar el texto del label
+update_label()
+
+# Ejecutar el bucle principal de la aplicación
+root.mainloop()
