@@ -10,7 +10,7 @@ def invertir(producto: str) -> str:
         return producto.replace("_", " ").capitalize()
 
 class Info(tk.Tk):
-    # unidades = {'g': (1000, 'kg'), 'ml': (1000, 'l'), 'un': (12, 'doc')}
+    unidades = {'g': (1000, 'kg'), 'ml': (1000, 'l'), 'un': (12, 'doc')}
     def __init__(self, root: tk.Tk, producto: str):
         self.root = root
         self.producto = producto
@@ -43,7 +43,7 @@ class Info(tk.Tk):
 
             # Entry para editar el label (inicialmente oculto)
         self.entry_text = tk.StringVar()
-        self.title_entry = ttk.Entry(self.title_frame, textvariable=self.entry_text, font=("Helvetica", 14), width=26)
+        self.title_entry = ttk.Entry(self.title_frame, textvariable=self.entry_text, font=("Helvetica", 14), width=18)
         self.title_entry.bind("<Return>", lambda e: self.confirmar_edit())
             # Botones de confirmación y cancelación (inicialmente ocultos)
         self.confirm_button = ttk.Button(self.title_frame, text="✓", command=self.confirmar_edit, width=3)
@@ -95,7 +95,7 @@ class Info(tk.Tk):
         self.url_entry_frame = ttk.Frame(self.info_frame)#, borderwidth=1, relief='solid', height=20, width=20)
         self.url_entry_frame.grid(row=3, column=0, columnspan=3, pady=(10, 0), sticky='ew')
             # Crear el Entry para la nueva URL
-        self.url_entry = ttk.Entry(self.url_entry_frame, width=56)
+        self.url_entry = ttk.Entry(self.url_entry_frame, width=40)
         self.url_entry.pack(side='left', fill='x', padx=(0,10))
         self.url_entry.bind("<Return>", lambda e: self.add_url())
 
@@ -143,7 +143,7 @@ class Info(tk.Tk):
         self.url_count += 1
         frame = ttk.Frame(self.url_frame, style=estilo)
         frame.pack(fill='x')
-        url_label = ttk.Label(frame, text=url, width=60, style=estilo)
+        url_label = ttk.Label(frame, text=url, width=45, style=estilo)
         url_label.pack(fill='x', side='left')
         url_label.bind("<Button-1>", lambda x: root.clipboard_clear() or root.clipboard_append(url))
         eliminar_boton = ttk.Button(frame, command=lambda: self.eliminar_url(frame), text='🗑', width=3)

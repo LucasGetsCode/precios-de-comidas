@@ -18,6 +18,7 @@ class App:
         self.root = root
         self.root.title("GUI con Listbox")
         self.data = obtener.precios()
+        self.producto_seleccionado = ''
 
         # Lista de opciones
         self.all_options = list(map(invertir, self.data.keys()))
@@ -61,7 +62,7 @@ class App:
         self.cantidad_input.grid(row=0, column=0)
         # self.cantidad_input.trace_add('write', self.validate_entry) # Verifica que se ingrese un número
 
-        self.cantidad_tipo = ttk.Combobox(self.cantidad_frame, values = ['g', 'mg', 'ml', 'pcn'], width=4)
+        self.cantidad_tipo = ttk.Combobox(self.cantidad_frame, values = ['g', 'ml', 'un'], width=4, state='readonly')
         self.cantidad_tipo.grid(row=0, column=1)
 
 
@@ -129,10 +130,13 @@ class App:
         selected = widget.curselection()
         if selected:
             option = widget.get(selected)
-            if self.info:
-                self.info.actualizar(invertir(option))
-            else:
-                self.info = Info(self.info_frame, invertir(option))
+            if option != self.producto_seleccionado:
+                self.producto_seleccionado = option
+                if self.info:
+                    self.info.actualizar(invertir(option))
+                else:
+                    self.info = Info(self.info_frame, invertir(option))
+
 
 if __name__ == "__main__":
     root = tk.Tk()
