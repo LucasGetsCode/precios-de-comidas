@@ -3,28 +3,28 @@ from tkinter import ttk
 import obtener
 
 
-def invertir(producto):
+def invertir(producto: str) -> str:
     if producto.capitalize() == producto:
         return producto.replace(" ", "_").lower()
     else:
         return producto.replace("_", " ").capitalize()
 
-class Info:
-    def __init__(self, root):
+class Info(tk.Tk):
+    # unidades = {'g': (1000, 'kg'), 'ml': (1000, 'l'), 'un': (12, 'doc')}
+    def __init__(self, root: tk.Tk, producto: str):
         self.root = root
-        self.root.title("Frame con Título, Textos, URLs con Scrollbar y Entradas")
+        self.producto = producto
+        self.data = obtener.data_producto(producto)
         self.url_count = 0
         self.style = ttk.Style()
         self.style.configure('Oscuro.Label', background='#f0f0f0')
         self.style.configure('Claro.Label',  background='#f8f8f8')
-        self.unidad_var = tk.StringVar()
-        self.unidad_var.set('g')
-        self.precio_pcn_var = tk.StringVar()
+        self.title_var       = tk.StringVar(value=invertir(producto))
+        self.unidad_var      = tk.StringVar(value=self.data['unidad'])
+        self.precio_pcn_var  = tk.StringVar()
         self.precio_pcn_var.set('800.0')
-        self.precio_cant_var = tk.StringVar()
-        self.precio_cant_var.set('4000')
-        self.cantidad_var = tk.StringVar()
-        self.cantidad_var.set('200')
+        self.precio_cant_var = tk.StringVar(value=self.data['precio'])
+        self.cantidad_var    = tk.StringVar(value=self.data['porcion'])
 
 
         ### Crear el frame principal
@@ -35,8 +35,7 @@ class Info:
         self.title_frame = ttk.Frame(self.info_frame)
         self.title_frame.grid(row=0,column=0, sticky='ew', columnspan=3)
 
-        self.label_text = tk.StringVar(value="Título")
-        self.title_label = ttk.Label(self.title_frame, textvariable=self.label_text, font=("Helvetica", 16))
+        self.title_label = ttk.Label(self.title_frame, textvariable=self.title_var, font=("Helvetica", 16))
         self.title_label.pack(side='left')
 
         self.title_edit_button = ttk.Button(self.title_frame, command=self.iniciar_edit, text="🖉", width=3)
@@ -88,9 +87,9 @@ class Info:
         self.url_frame = ttk.Frame(self.info_frame)#, borderwidth=1, relief='solid', height=20, width=20)
         self.url_frame.grid(row=2, column=0, columnspan=3, sticky='ew')
 
-        import random
-        self.urls = ["http://example.com/"+str(random.randint(0,100)) for i in range(7)]
-        for i in self.urls: self.añadir_url(i)
+        self.urls = self.data['links']
+        # self.urls = [("http://example.com/"+str(random.randint(0,100)), i) for i in range(7)]
+        for link in self.urls: self.añadir_url(link[0], link[1])
 
             # Frame para el input
         self.url_entry_frame = ttk.Frame(self.info_frame)#, borderwidth=1, relief='solid', height=20, width=20)
@@ -121,11 +120,13 @@ class Info:
             for widget2 in widget.winfo_children():
                 if widget2.widgetName == 'ttk::label':
                     if 'http' in widget2['text']:
-                        print(link)
+                        if link != []: print(link)
                         link = [widget2['text']]
                     else:
                         link.append(widget2['text'])
         print(link)
+        # self.destroy()
+        self.actualizar('cafe')
 
 
     ## URLS
@@ -145,8 +146,8 @@ class Info:
         url_label = ttk.Label(frame, text=url, width=60, style=estilo)
         url_label.pack(fill='x', side='left')
         url_label.bind("<Button-1>", lambda x: root.clipboard_clear() or root.clipboard_append(url))
-        boton = ttk.Button(frame, command=lambda: self.eliminar_url(frame), text='🗑', width=3)
-        boton.pack(fill='x', side='right')
+        eliminar_boton = ttk.Button(frame, command=lambda: self.eliminar_url(frame), text='🗑', width=3)
+        eliminar_boton.pack(fill='x', side='right')
         cant_info = ttk.Label(frame, text=cant, style=estilo)
         cant_info.pack(fill='x', side='right', padx=10)
 
@@ -175,7 +176,7 @@ class Info:
         self.title_edit_button.pack_forget()
         self.text2_label1.pack_forget()
         # Muestro los widgets editables
-        self.entry_text.set(self.label_text.get())
+        self.entry_text.set(self.title_var.get())
         self.title_entry.pack(side='left', padx=10)
         self.confirm_button.pack(side='right')
         self.cancel_button.pack(side='right', padx=5)     
@@ -186,9 +187,9 @@ class Info:
     def confirmar_edit(self):
         # Confirmar la edición y mostrar el Label actualizado
         if self.entry_text.get().strip() != '':
-            self.label_text.set(self.entry_text.get().strip().capitalize())
-            precio = int(self.precio_cant_var.get())
-            cant = int(self.cantidad_var.get())
+            self.title_var.set(self.entry_text.get().strip().capitalize())
+            precio = float(self.precio_cant_var.get())
+            cant = float(self.cantidad_var.get())
             self.precio_pcn_var.set(round(precio*cant/1000,1))
             self.terminar_edit()
 
@@ -210,7 +211,23 @@ class Info:
         self.title_edit_button.pack(side='right')      
         self.text2_label1.pack(side='left', before=self.text2_label2)
 
+    def actualizar(self, producto):
+        self.producto = producto
+        self.data = obtener.data_producto(producto)
+        self.title_var      .set(value=invertir(producto))
+        self.unidad_var     .set(self.data['unidad'])
+        self.precio_pcn_var .set('800.0')
+        self.precio_cant_var.set(self.data['precio'])
+        self.cantidad_var   .set(self.data['porcion'])
+        self.urls = self.data['links']
+        for url in self.url_frame.winfo_children(): self.eliminar_url(url)
+        for link in self.urls: self.añadir_url(link[0], link[1])
+
+    def destroy(self):
+        print("Destruyendo...")
+        self.root.destroy()
+
 if __name__ == "__main__":
     root = tk.Tk()
-    app = Info(root)
+    app = Info(root, 'pan_lactal')
     root.mainloop()

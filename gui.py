@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 from PIL import Image, ImageTk
 import obtener
+from InfoApp import Info
 
 path_flecha = "Media/Flecha derecha.png"
 
@@ -13,7 +14,7 @@ def invertir(producto):
         return producto.replace("_", " ").capitalize()
 
 class App:
-    def __init__(self, root):
+    def __init__(self, root: tk.Tk):
         self.root = root
         self.root.title("GUI con Listbox")
         self.data = obtener.precios()
@@ -67,13 +68,9 @@ class App:
         # Info
         self.info_frame = tk.Frame(root, width=200)
         self.info_frame.grid(row=0, column=3, rowspan=3)
-
-        # # Botón para mostrar información
-        # self.info_button = tk.Button(root, text="Info", command=self.show_info)
-        # self.info_button.grid(row=1, column=3, padx=10)
-
-        self.info_title_label = tk.Label(self.info_frame)
-        self.info_title_label.pack(side='top')
+        self.info = None
+        # self.info = Info(self.info_frame, producto='cafe')
+        # self.info.pack()
 
 
 
@@ -105,13 +102,6 @@ class App:
             for option in self.available_options:
                 self.listbox_available.insert(tk.END, option)
 
-    def show_info(self):
-        selection = self.listbox_selected.curselection()
-        if selection:
-            index = selection[0]
-            option = self.listbox_selected.get(index)
-            messagebox.showinfo("Información", f"Esta es la información de {option}")
-
     def navigate_up_available(self):
         current_selection = self.listbox_available.curselection()
         if current_selection:
@@ -130,16 +120,19 @@ class App:
                 self.listbox_available.select_set(index + 1)
                 self.listbox_available.see(index + 1)
 
-    def validate_entry(self, P):
+    def validate_entry(self, P: str):
         return P == "" or P.replace('.','',1).isdigit()
 
         
-    def update_label(self, event):
-        widget = event.widget
+    def update_label(self, event: tk.Event):
+        widget: tk.Widget = event.widget
         selected = widget.curselection()
         if selected:
             option = widget.get(selected)
-            self.info_title_label.config(text=option)
+            if self.info:
+                self.info.actualizar(invertir(option))
+            else:
+                self.info = Info(self.info_frame, invertir(option))
 
 if __name__ == "__main__":
     root = tk.Tk()
