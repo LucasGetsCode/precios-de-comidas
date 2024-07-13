@@ -37,6 +37,7 @@ class App:
             self.listbox_available.insert(tk.END, option)
         self.listbox_available.grid(row=1, column=0, rowspan=3, padx=10, pady=10)
         self.listbox_available.bind("<<ListboxSelect>>", self.update_label)
+        self.selected_option = (0, self.listbox_available)
 
         # Agregados
         self.listbox_selected = tk.Listbox(root, height=12, selectmode=tk.SINGLE)
@@ -60,6 +61,7 @@ class App:
         self.cantidad_input.grid(row=1, column=0)
         self.cantidad_tipo = ttk.Combobox(self.cantidad_frame, values = ['g', 'ml', 'un'], width=4, state='readonly')
         self.cantidad_tipo.grid(row=1, column=1)
+        self.cantidad_tipo.bind("<<ComboboxSelected>>", lambda e, opt = self.selected_option: opt[1].select_set(opt[0]))
 
         ### INFO PRODUCTO
         self.info_frame = tk.Frame(root, height=200, borderwidth=1, relief='solid')
@@ -119,12 +121,13 @@ class App:
         
     def update_label(self, event: tk.Event):
         widget: tk.Widget = event.widget
-        selected = widget.curselection()
-        if selected:
-            option = widget.get(selected)
-            if option != self.producto_seleccionado:
-                self.producto_seleccionado = option
-                self.info.actualizar(invertir(option))
+        option_index = widget.curselection()
+        if option_index:
+            self.selected_option = (option_index[0], widget)
+            option_text = widget.get(option_index)
+            if option_text != self.producto_seleccionado:
+                self.producto_seleccionado = option_text
+                self.info.actualizar(invertir(option_text), self.selected_option)
 
     def show_info(self):
         self.info_title.grid(row=0, column=3)

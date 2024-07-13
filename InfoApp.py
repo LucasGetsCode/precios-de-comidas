@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 import obtener
+import escribir
 
 
 def invertir(producto: str) -> str:
@@ -11,7 +12,7 @@ def invertir(producto: str) -> str:
 
 class Info(tk.Tk):
     unidades = {'g': (1000, 'kg'), 'ml': (1000, 'l'), 'un': (12, 'doc')}
-    def __init__(self, root: tk.Tk, producto: str):
+    def __init__(self, root: tk.Frame, producto: str, ):
         self.root = root
         self.producto = producto
         self.data = obtener.data_producto(producto)
@@ -22,9 +23,9 @@ class Info(tk.Tk):
         self.title_var       = tk.StringVar(value=invertir(producto))
         self.unidad_var      = tk.StringVar(value=self.data['unidad'])
         self.precio_pcn_var  = tk.StringVar()
-        self.precio_pcn_var.set('800.0')
         self.precio_cant_var = tk.StringVar(value=self.data['precio'])
         self.cantidad_var    = tk.StringVar(value=self.data['porcion'])
+        self.calcular_precio_pcn()
 
 
         ### Crear el frame principal
@@ -107,8 +108,8 @@ class Info(tk.Tk):
         self.url_entry_frame = ttk.Frame(self.info_frame)#, borderwidth=1, relief='solid', height=20, width=20)
         self.url_entry_frame.grid(row=3, column=0, columnspan=3, pady=(10, 0), sticky='ew')
             # Crear el Entry para la nueva URL
-        self.url_entry = ttk.Entry(self.url_entry_frame, width=40)
-        self.url_entry.pack(side='left', fill='x', padx=(0,10))
+        self.url_entry = ttk.Entry(self.url_entry_frame)
+        self.url_entry.pack(side='left', fill='x', padx=(0,10), expand=True)
         self.url_entry.bind("<Return>", lambda e: self.add_url())
 
             # Crear el botón para agregar la nueva URL y número
@@ -124,6 +125,8 @@ class Info(tk.Tk):
             # Crea el botón para mostrar la info de los widgets
         self.print_button = ttk.Button(self.info_frame, text="Print", command=self.print)
         self.print_button.grid(row=4, column=2)
+        self.save_button = ttk.Button(self.info_frame, text="Guardar", command=self.guardar)
+        self.save_button.grid(row=4, column=1)
 
         self.url_frame.update_idletasks()
         self.url_canvas.config(scrollregion=self.url_canvas.bbox("all"))
@@ -140,7 +143,8 @@ class Info(tk.Tk):
                         link = [widget2['text']]
                     else:
                         link.append(widget2['text'])
-        print(link)
+        # print(link)
+        print(self.root.winfo_toplevel().winfo_children())
         # self.destroy()
 
     ## URLS
@@ -166,6 +170,8 @@ class Info(tk.Tk):
         eliminar_boton.pack(fill='x', side='right')
         cant_info = ttk.Label(frame, text=cant, style=estilo, width=4)
         cant_info.pack(fill='x', side='right', padx=10)
+        cant_info.bind("<Enter>", lambda e: self.expandir_url(e, False))
+        cant_info.bind("<Leave>", lambda e: self.url_expandida.place_forget())
 
         self.url_frame.update_idletasks()
         self.url_canvas.config(scrollregion=self.url_canvas.bbox("all"))
@@ -188,13 +194,13 @@ class Info(tk.Tk):
                 if widget2.widgetName == 'ttk::label':
                     widget2.configure(style=estilo)
 
-    def expandir_url(self, event):
+    def expandir_url(self, event, copiar=True):
         widget = event.widget
         padre = self.root.nametowidget(widget.winfo_parent())
         mouse = self.root.winfo_pointerx() - self.root.winfo_rootx()
         y = padre.winfo_y()
-        self.url_expandida['text'] = "Click para copiar:\n" + widget.cget('text')
-        self.url_expandida.place(x=mouse+5, y=y+50)  # Colocar el label de información centrado
+        self.url_expandida['text'] = ("Click para copiar:\n" if copiar else '') + widget.cget('text')
+        self.url_expandida.place(x=mouse+5, y=y+ (50 if copiar else 65))  # Colocar el label de información centrado
         self.url_expandida.lift()  # Asegurar que el label de información esté sobre el label principal
 
 
@@ -243,7 +249,8 @@ class Info(tk.Tk):
         self.title_edit_button.pack(side='right')      
         self.text2_label1.pack(side='left', before=self.text2_label2)
 
-    def actualizar(self, producto):
+    def actualizar(self, producto, selected_option):
+        self.selected_option = selected_option
         self.producto = producto
         self.data = obtener.data_producto(producto)
         self.title_var      .set(value=invertir(producto))
@@ -263,6 +270,28 @@ class Info(tk.Tk):
     def destroy(self):
         print("Destruyendo...")
         self.root.destroy()
+
+    def guardar(self):
+        print("Guardando...")
+        links = ""
+        for frame in self.url_frame.winfo_children():
+            for widget in frame.winfo_children():
+                if widget.widgetName == 'ttk::label':
+                    if 'http' in widget['text']: links += widget['text'] + ';'
+                    else: links += widget['text'] + ','
+        data = {
+            'nombre' : self.producto,
+            'nuevo_nombre' : invertir(self.title_var.get()),
+            'links' : links[:-1],
+            'porcion' : self.cantidad_var.get(),
+            'unidad' : self.unidad_var.get()
+        }
+        escribir.modificar_producto(data)
+        index, widget = self.selected_option
+        widget.delete(index)
+        widget.insert(index, self.title_var.get())
+        widget.select_set(index)
+        print("Guardado!")
 
 if __name__ == "__main__":
     root = tk.Tk()

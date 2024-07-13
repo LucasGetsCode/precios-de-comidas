@@ -1,15 +1,15 @@
 import openpyxl
 from typing import Dict, List, Tuple, Union
+path = "precios.xlsx"
 
 def precios() -> Dict[str, int]:
-    path = "precios.xlsx"
     wb = openpyxl.load_workbook(filename=path)
     hoja = wb.active
 
     # print(ws['A1'].value)   # Nombre
     # print(ws.cell(row=1,column=1).value) # Nombre
-    productos = {}
     cant_filas = hoja.max_row
+    productos = {}
     fila = 2
     while fila < cant_filas+1 and hoja.cell(row=fila, column=1).value:
         producto     = hoja.cell(row=fila, column=1).value
@@ -19,10 +19,9 @@ def precios() -> Dict[str, int]:
 
     return productos
 
-# precios() # {'cafe': 30.97, 'oreo': 343.33, 'pan_lactal': 374.83}
+# print(precios()) # {'cafe': 30.97, 'oreo': 343.33, 'pan_lactal': 374.83}
 
 def links() -> Dict[str, List[Tuple[str, int]]]:
-    path = "precios.xlsx"
     wb = openpyxl.load_workbook(filename=path)
     hoja = wb.active
 
@@ -41,7 +40,6 @@ def links() -> Dict[str, List[Tuple[str, int]]]:
 # print(links()) # {'cafe': [['https...dolca-suave-170-g-729427/p', '113'], ['https...la-virginia-bolsa-x-250-g-681613/p', '100']]}
 
 def porcion() -> Dict[str, int]:
-    path = "precios.xlsx"
     wb = openpyxl.load_workbook(filename=path)
     hoja = wb.active
 
@@ -59,7 +57,6 @@ def porcion() -> Dict[str, int]:
 # print(porcion()) # {'cafe': 20, 'oreo': 60, 'pan_lactal': 200}
 
 def unidad() -> Dict[str, str]:
-    path = "precios.xlsx"
     wb = openpyxl.load_workbook(filename=path)
     hoja = wb.active
 
@@ -77,7 +74,6 @@ def unidad() -> Dict[str, str]:
 # print(unidad()) # {'cafe': 'g, 'oreo': 'g', 'pan_lactal': 'g'}
 
 def data() -> Dict[str, Dict[str, Union[float, str, List[Tuple[str, int]]]]]:
-    path = "precios.xlsx"
     wb = openpyxl.load_workbook(filename=path)
     hoja = wb.active
 
@@ -99,7 +95,6 @@ def data() -> Dict[str, Dict[str, Union[float, str, List[Tuple[str, int]]]]]:
 # print(data()) # {'oreo': {'precio': 343.33, 'links': [('https://www.carrefour.com.ar/galletitas-dulce-oreo-rellenas-con-crema-118-g-715949/p', '3')], 'porcion': 60, 'unidad': 'g'}}
 
 def data_producto(producto: str) -> Dict[str, Union[float, str, List[Tuple[str, int]]]]:
-    path = "precios.xlsx"
     wb = openpyxl.load_workbook(filename=path)
     hoja = wb.active
 
