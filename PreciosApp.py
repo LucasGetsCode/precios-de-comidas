@@ -16,63 +16,55 @@ def invertir(producto):
 class App:
     def __init__(self, root: tk.Tk):
         self.root = root
-        self.root.title("GUI con Listbox")
+        self.root.title("Precios de las comidas")
         self.data = obtener.precios()
         self.producto_seleccionado = ''
-
         # Lista de opciones
         self.all_options = list(map(invertir, self.data.keys()))
         self.available_options = self.all_options.copy()
 
-        # Listbox para mostrar opciones disponibles
-        self.listbox_available = tk.Listbox(root, selectmode=tk.SINGLE)
+        ### TÍTULOS
+        tk.Label(root, text='Productos disponibles').grid(row=0, column=0)
+        tk.Label(root, text='Ingredientes').grid(row=0, column=2)
+        self.info_button = tk.Button(root, text='i', font=('Terminal', 12), command=self.show_info)
+        self.info_button.grid(row=0, column=3, sticky='w')
+        self.info_title = tk.Label(root, text='Info del producto')
+
+        ### LISTBOX PRODUCTOS
+        # Disponibles
+        self.listbox_available = tk.Listbox(root, height=12, selectmode=tk.SINGLE)
         for option in self.available_options:
             self.listbox_available.insert(tk.END, option)
-        self.listbox_available.grid(row=0, column=0, rowspan=3, padx=10, pady=10)
+        self.listbox_available.grid(row=1, column=0, rowspan=3, padx=10, pady=10)
         self.listbox_available.bind("<<ListboxSelect>>", self.update_label)
 
-        # # Botones de flecha
-        # self.up_button = tk.Button(root, text="⬆", command=self.navigate_up_available)
-        # self.up_button.grid(row=0, column=1, padx=10)
-
-        # self.down_button = tk.Button(root, text="⬇", command=self.navigate_down_available)
-        # self.down_button.grid(row=1, column=1, padx=10)
-
-        # Listbox para mostrar elementos agregados
-        self.listbox_selected = tk.Listbox(root, selectmode=tk.SINGLE)
-        self.listbox_selected.grid(row=0, column=2, rowspan=3, padx=10, pady=10)
+        # Agregados
+        self.listbox_selected = tk.Listbox(root, height=12, selectmode=tk.SINGLE)
+        self.listbox_selected.grid(row=1, column=2, rowspan=3, padx=10, pady=10)
         self.listbox_selected.bind("<<ListboxSelect>>", self.update_label)
 
-        # Botón para agregar y quitar de la lista
+        ### MANEJO PRODUCTOS
+        # Botones -> y <-
         imagen = Image.open("Media/Flecha derecha.png").resize((30, 30))
         self.flecha_der = ImageTk.PhotoImage(imagen)
         self.flecha_izq = ImageTk.PhotoImage(imagen.rotate(180))
         self.agregar_button = tk.Button(root, text="-->", command=self.add_to_list, image=self.flecha_der)
-        self.agregar_button.grid(row=0, column=1, padx=10)
+        self.agregar_button.grid(row=1, column=1, padx=10)
         self.quitar_button = tk.Button(root, text="<--", command=self.remove_from_list, image=self.flecha_izq)
-        self.quitar_button.grid(row=2, column=1, padx=10)
-
-
-        # Manejo de la cantidad
+        self.quitar_button.grid(row=3, column=1, padx=10)
+        # Input cantidad y unidad
         self.cantidad_frame = tk.Frame(root)
-        self.cantidad_frame.grid(row=1, column=1)
-
+        self.cantidad_frame.grid(row=2, column=1)
         vcmd = (root.register(self.validate_entry), '%P')   # Verifica que se ingresen solo números
         self.cantidad_input = tk.Entry(self.cantidad_frame, width=5, validate='all', validatecommand=vcmd)
-        self.cantidad_input.grid(row=0, column=0)
-        # self.cantidad_input.trace_add('write', self.validate_entry) # Verifica que se ingrese un número
-
+        self.cantidad_input.grid(row=1, column=0)
         self.cantidad_tipo = ttk.Combobox(self.cantidad_frame, values = ['g', 'ml', 'un'], width=4, state='readonly')
-        self.cantidad_tipo.grid(row=0, column=1)
+        self.cantidad_tipo.grid(row=1, column=1)
 
-
-        # Info
-        self.info_frame = tk.Frame(root, width=200)
-        self.info_frame.grid(row=0, column=3, rowspan=3)
-        self.info = None
-        # self.info = Info(self.info_frame, producto='cafe')
-        # self.info.pack()
-
+        ### INFO PRODUCTO
+        self.info_frame = tk.Frame(root, height=200, borderwidth=1, relief='solid')
+        # self.info_frame.pack_propagate(False) 
+        self.info = Info(self.info_frame, invertir(option))
 
 
     def add_to_list(self):
@@ -132,11 +124,17 @@ class App:
             option = widget.get(selected)
             if option != self.producto_seleccionado:
                 self.producto_seleccionado = option
-                if self.info:
-                    self.info.actualizar(invertir(option))
-                else:
-                    self.info = Info(self.info_frame, invertir(option))
+                self.info.actualizar(invertir(option))
 
+    def show_info(self):
+        self.info_title.grid(row=0, column=3)
+        self.info_frame.grid(row=1, column=3, rowspan=3, padx=3, pady=3)
+        self.info_button['command'] = self.hide_info
+
+    def hide_info(self):
+        self.info_title.grid_forget()
+        self.info_frame.grid_forget()
+        self.info_button['command'] = self.show_info
 
 if __name__ == "__main__":
     root = tk.Tk()

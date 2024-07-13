@@ -84,12 +84,24 @@ class Info(tk.Tk):
         self.text3_label3 = ttk.Label(self.text3_frame, text='/ porción').pack(side='left')
 
         ### URLs
-        self.url_frame = ttk.Frame(self.info_frame)#, borderwidth=1, relief='solid', height=20, width=20)
-        self.url_frame.grid(row=2, column=0, columnspan=3, sticky='ew')
+        self.url_big_frame = tk.Frame(self.info_frame, height=100, width=200)#, borderwidth=1, relief='solid')
+        # self.url_big_frame.pack_propagate(False)
+        self.url_big_frame.grid(row=2, column=0, columnspan=3, sticky='ew')
+        self.url_canvas = tk.Canvas(self.url_big_frame, height=100)#, borderwidth=1, relief='solid')
+        self.url_canvas.pack(side='right', fill='both', expand=1)
+        self.url_scrollbar = tk.Scrollbar(self.url_big_frame, orient='vertical', command=self.url_canvas.yview)
+        self.url_scrollbar.pack(side='left', fill='y')
+        self.url_canvas.configure(yscrollcommand=self.url_scrollbar.set)
+        self.url_frame = ttk.Frame(self.url_canvas)#, borderwidth=1, relief='solid', height=20, width=20)
+        self.url_frame.pack(fill='both')
+        self.url_canvas.create_window((0, 0), window=self.url_frame, anchor="nw")
+
 
         self.urls = self.data['links']
-        # self.urls = [("http://example.com/"+str(random.randint(0,100)), i) for i in range(7)]
+        # import random
+        # self.urls = [("http://example.com/"+str(random.randint(0,100)), i) for i in range(20)]
         for link in self.urls: self.añadir_url(link[0], link[1])
+        self.url_expandida = tk.Label(self.root, bg='white', wraplength=300, borderwidth=1, relief='solid')
 
             # Frame para el input
         self.url_entry_frame = ttk.Frame(self.info_frame)#, borderwidth=1, relief='solid', height=20, width=20)
@@ -111,7 +123,11 @@ class Info(tk.Tk):
 
             # Crea el botón para mostrar la info de los widgets
         self.print_button = ttk.Button(self.info_frame, text="Print", command=self.print)
-        self.print_button.grid(row=4, column=2, pady=10)
+        self.print_button.grid(row=4, column=2)
+
+        self.url_frame.update_idletasks()
+        self.url_canvas.config(scrollregion=self.url_canvas.bbox("all"))
+
 
     def print(self):
         if self.url_frame.winfo_children() == []: print("No hay urls que mostrar")
@@ -126,8 +142,6 @@ class Info(tk.Tk):
                         link.append(widget2['text'])
         print(link)
         # self.destroy()
-        self.actualizar('cafe')
-
 
     ## URLS
     def add_url(self):
@@ -143,13 +157,18 @@ class Info(tk.Tk):
         self.url_count += 1
         frame = ttk.Frame(self.url_frame, style=estilo)
         frame.pack(fill='x')
-        url_label = ttk.Label(frame, text=url, width=45, style=estilo)
+        url_label = ttk.Label(frame, text=url, width=51, style=estilo)
         url_label.pack(fill='x', side='left')
-        url_label.bind("<Button-1>", lambda x: root.clipboard_clear() or root.clipboard_append(url))
+        url_label.bind("<Button-1>", lambda x: self.root.clipboard_clear() or self.root.clipboard_append(url))
+        url_label.bind("<Enter>", self.expandir_url)
+        url_label.bind("<Leave>", lambda e: self.url_expandida.place_forget())
         eliminar_boton = ttk.Button(frame, command=lambda: self.eliminar_url(frame), text='🗑', width=3)
         eliminar_boton.pack(fill='x', side='right')
-        cant_info = ttk.Label(frame, text=cant, style=estilo)
+        cant_info = ttk.Label(frame, text=cant, style=estilo, width=4)
         cant_info.pack(fill='x', side='right', padx=10)
+
+        self.url_frame.update_idletasks()
+        self.url_canvas.config(scrollregion=self.url_canvas.bbox("all"))
 
     def eliminar_url(self, widget: ttk.Widget):
         for hijo in widget.winfo_children():
@@ -157,6 +176,9 @@ class Info(tk.Tk):
         widget.destroy()
         self.url_count -= 1
         self.refrescar_urls()
+        
+        self.url_frame.update_idletasks()
+        self.url_canvas.config(scrollregion=self.url_canvas.bbox("all"))
 
     def refrescar_urls(self):
         for index, widget in enumerate(self.url_frame.winfo_children()):
@@ -165,6 +187,16 @@ class Info(tk.Tk):
             for widget2 in widget.winfo_children():
                 if widget2.widgetName == 'ttk::label':
                     widget2.configure(style=estilo)
+
+    def expandir_url(self, event):
+        widget = event.widget
+        padre = self.root.nametowidget(widget.winfo_parent())
+        mouse = self.root.winfo_pointerx() - self.root.winfo_rootx()
+        y = padre.winfo_y()
+        self.url_expandida['text'] = "Click para copiar:\n" + widget.cget('text')
+        self.url_expandida.place(x=mouse+5, y=y+50)  # Colocar el label de información centrado
+        self.url_expandida.lift()  # Asegurar que el label de información esté sobre el label principal
+
 
     ### EDITS
     def iniciar_edit(self):
@@ -216,12 +248,17 @@ class Info(tk.Tk):
         self.data = obtener.data_producto(producto)
         self.title_var      .set(value=invertir(producto))
         self.unidad_var     .set(self.data['unidad'])
-        self.precio_pcn_var .set('800.0')
         self.precio_cant_var.set(self.data['precio'])
         self.cantidad_var   .set(self.data['porcion'])
+        self.calcular_precio_pcn()
         self.urls = self.data['links']
         for url in self.url_frame.winfo_children(): self.eliminar_url(url)
         for link in self.urls: self.añadir_url(link[0], link[1])
+    
+    def calcular_precio_pcn(self):
+            precio = float(self.precio_cant_var.get())
+            cant = float(self.cantidad_var.get())
+            self.precio_pcn_var.set(round(precio*cant/1000,1))
 
     def destroy(self):
         print("Destruyendo...")
